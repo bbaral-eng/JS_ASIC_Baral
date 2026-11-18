@@ -17,7 +17,7 @@ module tt_um_bbaral_eng_protocol_emulator (
 );
 
   // All output pins must be assigned. If not used, assign to 0.
-  assign uo_out  = 8'b00010000;  // pin 4 set to 1 
+    assign uo_out  = ui_in[0] ? 8'b00000000 : 8'b00010000;  // if first input pin is 1 set all 8 output bits to 0, else set just the pin 4 to 1, rest to 0. 
   assign uio_out = 0;
   assign uio_oe  = 0;
 
