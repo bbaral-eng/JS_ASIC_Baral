@@ -16,12 +16,20 @@ module tt_um_bbaral_eng_protocol_emulator (
     input  wire       rst_n     // reset_n - low to reset
 );
 
-  // All output pins must be assigned. If not used, assign to 0.
-    assign uo_out  = ui_in[0] ? 8'b00000000 : 8'b00010000;  // if first input pin is 1 set all 8 output bits to 0, else set just the pin 4 to 1, rest to 0. 
-  assign uio_out = 0;
-  assign uio_oe  = 0;
+    reg tx;
+
+    always @(posedge clk) begin 
+        if (!rst_n)
+            tx <= 1'b1;
+        else 
+            tx <= ui_in[0] ? 1'b0 : 1'b1;
+    end 
+
+    assign uo_out  = tx ? 8'b00010000 : 8'b00000000;  
+    assign uio_out = 0;
+    assign uio_oe  = 0;
 
   // List all unused inputs to prevent warnings
-    wire _unused = &{ena, clk, rst_n, 1'b0, ui_in, uio_in};
+    wire _unused = &{ena, 1'b0, ui_in, uio_in};
 
 endmodule
