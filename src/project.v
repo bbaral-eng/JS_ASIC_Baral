@@ -19,7 +19,9 @@ module tt_um_bbaral_eng_protocol_emulator (
 
     reg tx; // transmit, current level of UART line 
     reg [8:0] baud_count; // bit positions 
-
+    reg [3:0] bit_index;  // we need 10 bits to send a byte of data, index represented with 4 bits 
+    
+    
     always @(posedge clk) begin
       if (!rst_n)
         baud_count <= 9'd0;
@@ -31,12 +33,24 @@ module tt_um_bbaral_eng_protocol_emulator (
     
     wire bit_done = (baud_count == 9'd433);
 
+    always @(posedge clk) begin
+      if (!rst_n)
+        bit_index <= 4'd0;
+      else if (bit_done) begin
+        if (bit_index == 4'd9)
+          bit_index <= 4'd0;
+        else
+          bit_index <= bit_index + 4'd1;
+      end
+    end
+
+    wire [9:0] frame = {1'b1, 8'b01000001, 1'b0};
     
     always @(posedge clk) begin 
         if (!rst_n)
             tx <= 1'b1;
-        else if (bit_done)
-            tx <= ~tx;
+        else 
+            tx <= frame[bit_index];
     end 
 
     assign uo_out  = tx ? 8'b00010000 : 8'b00000000;  
