@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Your Name
+ * Copyright (c) 2024 Biplove Baral
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -17,45 +17,23 @@ module tt_um_bbaral_eng_protocol_emulator (
     input  wire       rst_n     // reset_n - low to reset
 );
 
-    reg tx; // transmit, current level of UART line 
-    reg [8:0] baud_count; // bit positions 
-    reg [3:0] bit_index;  // we need 10 bits to send a byte of data, index represented with 4 bits 
-    
-    
-    always @(posedge clk) begin
-      if (!rst_n)
-        baud_count <= 9'd0;
-      else if (baud_count == 9'd433)
-        baud_count <= 9'd0;
-      else
-        baud_count <= baud_count + 9'd1;
-    end
-    
-    wire bit_done = (baud_count == 9'd433);
+// pin control registers 
+  wire       pc_wr_en   = 1'b0;
+  wire [7:0] pc_wr_data = 8'b00000000;
+  wire [7:0] pc_wr_mask = 8'b00000000;
+  wire [1:0] pc_wr_sel  = 2'b00;
 
-    always @(posedge clk) begin
-      if (!rst_n)
-        bit_index <= 4'd0;
-      else if (bit_done) begin
-        if (bit_index == 4'd9)
-          bit_index <= 4'd0;
-        else
-          bit_index <= bit_index + 4'd1;
-      end
-    end
-
-    wire [9:0] frame = {1'b1, 8'b01000001, 1'b0};
-    
-    always @(posedge clk) begin 
-        if (!rst_n)
-            tx <= 1'b1;
-        else 
-            tx <= frame[bit_index];
-    end 
-
-    assign uo_out  = tx ? 8'b00010000 : 8'b00000000;  
-    assign uio_out = 0;
-    assign uio_oe  = 0;
+  pin_ctrl u_pin_ctrl (
+      .clk     (clk),
+      .rst_n   (rst_n),
+      .wr_en   (pc_wr_en),
+      .wr_data (pc_wr_data),
+      .wr_mask (pc_wr_mask),
+      .wr_sel  (pc_wr_sel),
+      .uo_out  (uo_out),
+      .uio_out (uio_out),
+      .uio_oe  (uio_oe)
+  );
 
   // List all unused inputs to prevent warnings
     wire _unused = &{ena, 1'b0, ui_in, uio_in};
